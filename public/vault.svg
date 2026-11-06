@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#4338ca" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)" stroke="#312e81" stroke-width="8"/>
+
+  <!-- Subtle inner grid / vault circuit -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="12 12"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#334155" stroke-width="2"/>
+
+  <!-- Clipboard Board Body -->
+  <rect x="136" y="120" width="240" height="300" rx="24" fill="#1e293b" stroke="url(#cyan-glow)" stroke-width="6" />
+
+  <!-- Clipboard Top Clip -->
+  <rect x="196" y="92" width="120" height="44" rx="12" fill="#334155" stroke="url(#cyan-glow)" stroke-width="4" />
+  <circle cx="256" cy="114" r="8" fill="#06b6d4" />
+
+  <!-- Central Shield / Vault Lock -->
+  <g filter="url(#glow)">
+    <path d="M256 180 L320 208 V280 C320 330 256 368 256 368 C256 368 192 330 192 280 V208 Z" 
+          fill="url(#shield-grad)" stroke="#818cf8" stroke-width="5" />
+    
+    <!-- Vault Keyhole / Checkmark -->
+    <circle cx="256" cy="250" r="16" fill="#ffffff" />
+    <polygon points="250,256 262,256 266,290 246,290" fill="#ffffff" />
+  </g>
+</svg>

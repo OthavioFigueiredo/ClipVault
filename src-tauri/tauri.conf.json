@@ -1,0 +1,68 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "ClipVault",
+  "version": "1.0.0",
+  "identifier": "com.clipvault.app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "ClipVault",
+        "width": 840,
+        "height": 680,
+        "minWidth": 460,
+        "minHeight": 520,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "center": true,
+        "visible": false,
+        "shadow": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "trayIcon": {
+      "id": "main-tray",
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true,
+      "tooltip": "ClipVault - Gerenciador de Clipboard e Screenshots"
+    }
+  },
+  "plugins": {
+    "global-shortcut": null
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
+    "shortDescription": "Gerenciador offline de clipboard e screenshots para Ubuntu GNOME X11",
+    "longDescription": "ClipVault monitora alterações da área de transferência X11 via XFixes, captura telas e salva metadados em JSON e imagens em ~/.cache/clipvault/ com expiração automática de 24 horas.",
+    "category": "Utility",
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37",
+          "libgtk-3-0 | libgtk-3-0t64",
+          "libayatana-appindicator3-1",
+          "librsvg2-2"
+        ],
+        "section": "utils",
+        "priority": "optional"
+      }
+    }
+  }
+}
