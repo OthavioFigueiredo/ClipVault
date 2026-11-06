@@ -46,71 +46,109 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    loadInitialData();
+    let isMounted = true;
+    const unlistenFns: (() => void)[] = [];
 
-    // Ouvintes de eventos em tempo real emitidos pelo backend Rust
-    const unlistenRecordAdded = listen<VaultRecord>('vault:record-added', (event) => {
-      setRecords((prev) => {
-        if (prev.some((r) => r.id === event.payload.id)) return prev;
-        return [event.payload, ...prev];
-      });
-    });
-
-    const unlistenRecordDeleted = listen<string>('vault:record-deleted', (event) => {
-      setRecords((prev) => prev.filter((r) => r.id !== event.payload));
-    });
-
-    const unlistenFavoriteToggled = listen<{ id: string; is_favorite: boolean }>(
-      'vault:favorite-toggled',
-      (event) => {
-        setRecords((prev) =>
-          prev.map((r) =>
-            r.id === event.payload.id ? { ...r, is_favorite: event.payload.is_favorite } : r
-          )
-        );
+    const registerListener = async <T,>(
+      event: string,
+      handler: (payload: T) => void
+    ) => {
+      try {
+        const unlisten = await listen<T>(event, (ev) => {
+          if (isMounted) {
+            handler(ev.payload);
+          }
+        });
+        if (isMounted) {
+          unlistenFns.push(unlisten);
+        } else {
+          unlisten();
+        }
+      } catch (err) {
+        console.error(`[ClipVault UI] Falha ao registrar ouvinte ${event}:`, err);
       }
-    );
+    };
 
-    const unlistenCleared = listen('vault:history-cleared', () => {
-      setRecords([]);
-    });
+    const setupListeners = async () => {
+      await loadInitialData();
 
-    const unlistenPruned = listen('vault:history-pruned', () => {
-      loadInitialData();
-    });
+      await Promise.all([
+        registerListener<VaultRecord>('vault:record-added', (newRecord) => {
+          setRecords((prev) => {
+            if (prev.some((r) => r.id === newRecord.id)) return prev;
+            return [newRecord, ...prev];
+          });
+        }),
 
-    const unlistenPause = listen<boolean>('vault:pause-toggled', (event) => {
-      setSettings((prev) => ({ ...prev, is_paused: event.payload }));
-    });
+        registerListener<string>('vault:record-deleted', (deletedId) => {
+          setRecords((prev) => prev.filter((r) => r.id !== deletedId));
+        }),
 
-    const unlistenTriggerCapture = listen<string>('vault:trigger-capture', (event) => {
-      if (event.payload === 'full') {
-        handleCaptureFullscreen();
-      } else if (event.payload === 'window') {
-        handleCaptureWindow();
-      } else if (event.payload === 'region') {
-        setRegionSelectorOpen(true);
+        registerListener<{ id: string; is_favorite: boolean }>(
+          'vault:favorite-toggled',
+          ({ id, is_favorite }) => {
+            setRecords((prev) =>
+              prev.map((r) => (r.id === id ? { ...r, is_favorite } : r))
+            );
+          }
+        ),
+
+        registerListener<void>('vault:history-cleared', () => {
+          setRecords([]);
+        }),
+
+        registerListener<number>('vault:history-pruned', () => {
+          loadInitialData();
+        }),
+
+        registerListener<boolean>('vault:pause-toggled', (isPaused) => {
+          setSettings((prev) => ({ ...prev, is_paused: isPaused }));
+        }),
+
+        registerListener<VaultSettings>('vault:settings-updated', (newSettings) => {
+          setSettings(newSettings);
+        }),
+
+        registerListener<string>('vault:trigger-capture', (mode) => {
+          if (mode === 'full') {
+            handleCaptureFullscreen();
+          } else if (mode === 'window') {
+            handleCaptureWindow();
+          } else if (mode === 'region') {
+            setRegionSelectorOpen(true);
+          }
+        }),
+
+        registerListener<void>('vault:trigger-toggle-pause', () => {
+          handleTogglePause();
+        }),
+
+        registerListener<void>('vault:trigger-clear-all', () => {
+          handleClearHistory();
+        }),
+      ]);
+    };
+
+    setupListeners();
+
+    // Sincronização ao focar a janela
+    const handleFocus = () => {
+      if (isMounted) {
+        loadInitialData();
       }
-    });
-
-    const unlistenTriggerTogglePause = listen('vault:trigger-toggle-pause', () => {
-      handleTogglePause();
-    });
-
-    const unlistenTriggerClearAll = listen('vault:trigger-clear-all', () => {
-      handleClearHistory();
-    });
+    };
+    window.addEventListener('focus', handleFocus);
 
     return () => {
-      unlistenRecordAdded.then((f) => f());
-      unlistenRecordDeleted.then((f) => f());
-      unlistenFavoriteToggled.then((f) => f());
-      unlistenCleared.then((f) => f());
-      unlistenPruned.then((f) => f());
-      unlistenPause.then((f) => f());
-      unlistenTriggerCapture.then((f) => f());
-      unlistenTriggerTogglePause.then((f) => f());
-      unlistenTriggerClearAll.then((f) => f());
+      isMounted = false;
+      window.removeEventListener('focus', handleFocus);
+      unlistenFns.forEach((fn) => {
+        try {
+          fn();
+        } catch (e) {
+          console.error('[ClipVault UI] Erro no unlisten:', e);
+        }
+      });
     };
   }, []);
 

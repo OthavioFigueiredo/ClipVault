@@ -1,6 +1,6 @@
 [package]
 name = "clipvault"
-version = "1.0.0"
+version = "1.0.1"
 description = "ClipVault - Desktop Clipboard & Screenshot Manager"
 authors = ["ClipVault Team"]
 license = "MIT"

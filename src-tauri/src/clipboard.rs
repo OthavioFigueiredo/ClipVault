@@ -343,7 +343,11 @@ pub fn start_clipboard_monitor(
                                         if let Ok(Some(record)) =
                                             storage.add_image_record(png_bytes, width, height)
                                         {
-                                            let _ = app.emit("vault:record-added", record);
+                                            if let Err(e) = app.emit("vault:record-added", &record) {
+                                                eprintln!("[ClipVault] Erro ao emitir evento de imagem: {}", e);
+                                            } else {
+                                                println!("[ClipVault] Imagem salva e evento emitido: {}", record.id);
+                                            }
                                         }
                                     }
                                 }
@@ -382,7 +386,11 @@ pub fn start_clipboard_monitor(
 
                                 // Adicionar ao histórico
                                 if let Ok(Some(record)) = storage.add_text_record(text, is_sensitive) {
-                                    let _ = app.emit("vault:record-added", record);
+                                    if let Err(e) = app.emit("vault:record-added", &record) {
+                                        eprintln!("[ClipVault] Erro ao emitir evento de texto: {}", e);
+                                    } else {
+                                        println!("[ClipVault] Texto salvo e evento emitido: {}", record.id);
+                                    }
                                 }
                             }
                         }
